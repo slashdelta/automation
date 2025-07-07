@@ -51,7 +51,7 @@ clean:
 
 inventory:
 	@echo "Generating Ansible inventory from Terraform outputs..."
-	@cd ansible && python3 generate_inventory.py
+	@cd ansible && python3 scripts/generate_inventory.py
 
 ansible-ping:
 	@echo "Testing Ansible connectivity to all VMs..."
@@ -59,15 +59,15 @@ ansible-ping:
 
 ansible-docker:
 	@echo "Running Docker setup playbook..."
-	cd ansible && ansible-playbook docker-setup.yml
+	cd ansible && ansible-playbook playbooks/docker-setup.yml
 
 ansible-gpu:
 	@echo "Installing NVIDIA drivers and Docker GPU support..."
-	cd ansible && ansible-playbook gpu-setup.yml
+	cd ansible && ansible-playbook playbooks/gpu-setup.yml
 
 ansible-dynamic:
 	@echo "Using dynamic inventory..."
-	cd ansible && ansible all -i ./terraform_inventory.py -m ping
+	cd ansible && ansible all -i ./scripts/terraform_inventory.py -m ping
 
 find-gpu-ids:
 	@echo "Finding GPU PCI IDs on Proxmox nodes..."
@@ -79,11 +79,11 @@ find-gpu-ids:
 # Proxmox GPU discovery targets
 discover-gpus:
 	@echo "Discovering GPUs on all Proxmox nodes..."
-	cd ansible && ansible-playbook -i proxmox_inventory.ini proxmox-gpu-discovery.yml
+	cd ansible && ansible-playbook -i inventories/proxmox/hosts.ini playbooks/proxmox-gpu-discovery.yml
 
 proxmox-ping:
 	@echo "Testing connectivity to Proxmox nodes..."
-	cd ansible && ansible all -i proxmox_inventory.ini -m ping
+	cd ansible && ansible all -i inventories/proxmox/hosts.ini -m ping
 
 # Ansible setup and installation targets
 ansible-setup:

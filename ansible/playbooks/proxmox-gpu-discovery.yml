@@ -15,7 +15,7 @@
     
     - name: Copy GPU PCI ID finder script to node
       copy:
-        src: ../scripts/find_gpu_pci_ids.sh
+        src: ../../scripts/find_gpu_pci_ids.sh
         dest: /tmp/find_gpu_pci_ids.sh
         mode: '0755'
     
@@ -36,7 +36,7 @@
           ===== GPU Information for Node: {{ inventory_hostname }} ({{ ansible_host }}) =====
           {{ gpu_info.stdout }}
           
-        dest: "./gpu_info_{{ inventory_hostname }}.txt"
+        dest: "../vars/generated/gpu_info_{{ inventory_hostname }}.txt"
       delegate_to: localhost
       become: no
     
@@ -77,7 +77,7 @@
           # - gpu_info_green.txt  - GPU information for green node (10.10.0.11) 
           # - gpu_info_blue.txt   - GPU information for blue node (10.10.0.12)
           
-        dest: "./GPU_CONFIGURATION_GUIDE.txt"
+        dest: "../vars/generated/GPU_CONFIGURATION_GUIDE.txt"
       run_once: true
     
     - name: Display next steps

@@ -1,0 +1,11 @@
+---
+# Variables specific to Proxmox nodes
+gpu_discovery_script_path: /tmp/find_gpu_pci_ids.sh
+gpu_output_dir: "../../vars/generated"
+
+# IOMMU and VFIO settings
+iommu_enabled: true
+vfio_modules:
+  - vfio
+  - vfio_iommu_type1
+  - vfio_pci

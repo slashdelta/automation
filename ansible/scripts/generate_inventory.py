@@ -12,7 +12,7 @@ def get_terraform_outputs():
     """Get Terraform outputs as JSON"""
     # Determine the terraform directory path
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    terraform_dir = os.path.join(script_dir, '..', 'terraform')
+    terraform_dir = os.path.join(script_dir, '..', '..', 'terraform')
     
     try:
         result = subprocess.run(['terraform', 'output', '-json'], 
@@ -50,7 +50,7 @@ def main():
     
     # Write to file in the ansible directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    inventory_path = os.path.join(script_dir, 'inventory.ini')
+    inventory_path = os.path.join(script_dir, '..', 'inventories', 'production', 'hosts.ini')
     
     with open(inventory_path, 'w') as f:
         f.write(inventory)

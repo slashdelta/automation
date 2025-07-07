@@ -1,0 +1,10 @@
+---
+# Variables specific to VMs that will have GPU passthrough
+gpu_docker_runtime: nvidia
+
+# NVIDIA driver configuration
+nvidia_driver_version: "535"
+nvidia_docker_version: "2.13.0-1"
+
+# CUDA configuration
+cuda_version: "12.2"

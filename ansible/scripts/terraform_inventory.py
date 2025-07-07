@@ -17,7 +17,7 @@ def get_terraform_outputs():
     """Get Terraform outputs as JSON"""
     # Determine the terraform directory path
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    terraform_dir = os.path.join(script_dir, '..', 'terraform')
+    terraform_dir = os.path.join(script_dir, '..', '..', 'terraform')
     
     try:
         result = subprocess.run(['terraform', 'output', '-json'], 
