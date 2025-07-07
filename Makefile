@@ -1,6 +1,6 @@
 # Makefile for Terraform and Ansible operations
 
-.PHONY: help init plan apply destroy clean validate fmt inventory ansible-ping ansible-docker ansible-dynamic find-gpu-ids ansible-gpu
+.PHONY: help init plan apply destroy clean validate fmt inventory ansible-ping ansible-docker ansible-dynamic find-gpu-ids ansible-gpu discover-gpus proxmox-ping ansible-setup ansible-check ansible-requirements ansible-setup ansible-check ansible-requirements
 
 help:
 	@echo "Available targets:"
@@ -15,8 +15,16 @@ help:
 	@echo "  ansible-docker - Run Docker setup playbook"
 	@echo "  ansible-gpu   - Install NVIDIA drivers and Docker GPU support"
 	@echo "  ansible-dynamic - Test connectivity using dynamic inventory"
+	@echo "  ansible-setup - Set up Ansible environment and collections"
+	@echo "  ansible-check - Check Ansible configuration"
+	@echo "  ansible-requirements - Install Ansible and dependencies"
+	@echo "  proxmox-ping  - Test connectivity to Proxmox nodes"
+	@echo "  discover-gpus - Automatically discover GPUs on all Proxmox nodes"
 	@echo "  find-gpu-ids  - Show script to find GPU PCI IDs on Proxmox nodes"
 	@echo "  clean         - Clean Terraform cache and state files"
+	@echo "  ansible-setup  - Set up Ansible environment"
+	@echo "  ansible-check  - Check Ansible configuration"
+	@echo "  ansible-requirements - Install Ansible requirements"
 
 init:
 	cd terraform && terraform init
@@ -67,3 +75,33 @@ find-gpu-ids:
 	@echo "scp scripts/find_gpu_pci_ids.sh root@node-ip:/tmp/"
 	@echo "ssh root@node-ip /tmp/find_gpu_pci_ids.sh"
 	@cat scripts/find_gpu_pci_ids.sh
+
+# Proxmox GPU discovery targets
+discover-gpus:
+	@echo "Discovering GPUs on all Proxmox nodes..."
+	cd ansible && ansible-playbook -i proxmox_inventory.ini proxmox-gpu-discovery.yml
+
+proxmox-ping:
+	@echo "Testing connectivity to Proxmox nodes..."
+	cd ansible && ansible all -i proxmox_inventory.ini -m ping
+
+# Ansible setup and installation targets
+ansible-setup:
+	@echo "Setting up Ansible environment..."
+	cd ansible && ansible-galaxy collection install community.general
+	cd ansible && ansible-galaxy collection install ansible.posix
+	@echo "Ansible setup complete!"
+
+ansible-check:
+	@echo "Checking Ansible configuration..."
+	cd ansible && ansible --version
+	cd ansible && ansible-config view
+	@echo "Checking available inventory..."
+	cd ansible && ansible-inventory --list
+
+ansible-requirements:
+	@echo "Installing Ansible requirements..."
+	sudo apt update
+	sudo apt install -y ansible python3-pip sshpass
+	pip3 install --user ansible-core
+	@echo "Ansible requirements installed!"

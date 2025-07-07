@@ -22,6 +22,8 @@ ansible/collections/
 ansible/roles/*/tests/test.yml
 ansible/roles/*/tests/inventory
 ansible/playbooks/*.retry
+ansible/gpu_info_*.txt
+ansible/GPU_CONFIGURATION_GUIDE.txt
 
 # Python cache
 __pycache__/

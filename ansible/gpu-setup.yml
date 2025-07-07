@@ -1,6 +1,5 @@
 ---
 # Ansible playbook to install NVIDIA drivers and Docker GPU support
-- name: Install NVIDIA drivers and Docker GPU support
   hosts: docker_vms
   become: yes
   gather_facts: yes

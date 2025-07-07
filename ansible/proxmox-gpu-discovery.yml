@@ -1,0 +1,91 @@
+---
+# Ansible playbook to find GPU PCI IDs on Proxmox nodes
+- name: Find GPU PCI IDs on Proxmox nodes
+  hosts: proxmox_nodes
+  gather_facts: yes
+  become: yes
+  
+  tasks:
+    - name: Display node information
+      debug:
+        msg: |
+          Scanning Proxmox node: {{ inventory_hostname }}
+          IP Address: {{ ansible_host }}
+          Node Name: {{ inventory_hostname }}
+    
+    - name: Copy GPU PCI ID finder script to node
+      copy:
+        src: ../scripts/find_gpu_pci_ids.sh
+        dest: /tmp/find_gpu_pci_ids.sh
+        mode: '0755'
+    
+    - name: Run GPU PCI ID finder script
+      command: /tmp/find_gpu_pci_ids.sh
+      register: gpu_info
+      changed_when: false
+    
+    - name: Display GPU information for node
+      debug:
+        msg: |
+          ===== GPU Information for Node: {{ inventory_hostname }} ({{ ansible_host }}) =====
+          {{ gpu_info.stdout }}
+    
+    - name: Save GPU information to local file
+      copy:
+        content: |
+          ===== GPU Information for Node: {{ inventory_hostname }} ({{ ansible_host }}) =====
+          {{ gpu_info.stdout }}
+          
+        dest: "./gpu_info_{{ inventory_hostname }}.txt"
+      delegate_to: localhost
+      become: no
+    
+    - name: Clean up script from node
+      file:
+        path: /tmp/find_gpu_pci_ids.sh
+        state: absent
+
+- name: Generate GPU configuration summary
+  hosts: localhost
+  gather_facts: yes
+  tasks:
+    - name: Create GPU configuration template
+      copy:
+        content: |
+          # GPU Configuration Summary
+          # Generated on {{ ansible_date_time.iso8601 }}
+          
+          # Copy the PCI IDs from the files above and update terraform/main.tf:
+          # 
+          # gpu_config = {
+          #   red = {
+          #     gpu_passthrough = true
+          #     gpu_pci_ids     = ["0000:XX:XX.X", "0000:XX:XX.X"]  # Update with red node GPU PCI IDs
+          #   }
+          #   green = {
+          #     gpu_passthrough = true  
+          #     gpu_pci_ids     = ["0000:XX:XX.X", "0000:XX:XX.X"]  # Update with green node GPU PCI IDs
+          #   }
+          #   blue = {
+          #     gpu_passthrough = true
+          #     gpu_pci_ids     = ["0000:XX:XX.X", "0000:XX:XX.X"]  # Update with blue node GPU PCI IDs
+          #   }
+          # }
+          
+          # Files generated:
+          # - gpu_info_red.txt    - GPU information for red node (10.10.0.10)
+          # - gpu_info_green.txt  - GPU information for green node (10.10.0.11) 
+          # - gpu_info_blue.txt   - GPU information for blue node (10.10.0.12)
+          
+        dest: "./GPU_CONFIGURATION_GUIDE.txt"
+      run_once: true
+    
+    - name: Display next steps
+      debug:
+        msg: |
+          ===== NEXT STEPS =====
+          1. Check the generated files: gpu_info_*.txt
+          2. Update terraform/main.tf with the PCI IDs found
+          3. Run 'make plan' to see the changes
+          4. Run 'make apply' to apply GPU passthrough
+          5. Run 'make ansible-gpu' to install drivers on VMs
