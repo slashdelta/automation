@@ -46,7 +46,7 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
   # Cloud-init configuration
   initialization {
     datastore_id = var.storage
-    
+
     user_account {
       username = "ubuntu"
       keys     = [var.vm_ssh_public_key]
@@ -77,7 +77,7 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
 
   # GPU Passthrough configuration
   dynamic "hostpci" {
-    for_each = var.gpu_passthrough ? var.gpu_pci_ids : []
+    for_each = var.gpu_passthrough ? { for idx, pci_id in var.gpu_pci_ids : idx => pci_id } : {}
     content {
       device = hostpci.value
       pcie   = true

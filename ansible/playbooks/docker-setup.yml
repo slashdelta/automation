@@ -9,12 +9,9 @@
     - name: Display VM information
       debug:
         msg: |
-          VM Name: {{ vm_name }}
-          Hostname: {{ hostname }}
+          VM Name: {{ inventory_hostname }}
+          Hostname: {{ inventory_hostname }}
           IP Address: {{ ansible_host }}
-          VM ID: {{ vm_id }}
-          Node: {{ node_name }}
-          MAC Address: {{ mac_address }}
     
     - name: Update apt cache
       apt:

@@ -1,5 +1,6 @@
 ---
 # Ansible playbook to install NVIDIA drivers and Docker GPU support
+- name: Install NVIDIA drivers and Docker GPU support
   hosts: docker_vms
   become: yes
   gather_facts: yes
@@ -11,8 +12,8 @@
     - name: Display GPU information
       debug:
         msg: |
-          Configuring GPU support for VM: {{ vm_name }}
-          Hostname: {{ hostname }}
+          Configuring GPU support for VM: {{ inventory_hostname }}
+          Hostname: {{ inventory_hostname }}
           IP Address: {{ ansible_host }}
     
     - name: Update apt cache
