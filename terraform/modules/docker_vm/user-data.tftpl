@@ -1,0 +1,17 @@
+#cloud-config
+
+# Set the hostname from a variable
+hostname: ${hostname}
+
+# Use a for-loop to install a list of packages
+packages:
+%{ for package in packages ~}
+  - ${package}
+%{ endfor ~}
+
+runcmd:
+  - [ systemctl, enable, --now, qemu-guest-agent ]
+
+# Ensure package updates are performed
+package_update: true
+package_upgrade: true

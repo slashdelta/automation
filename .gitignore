@@ -1,0 +1,70 @@
+# .gitignore for Terraform + Ansible Project
+# This file ignores sensitive files, generated files, and build artifacts
+# for both Terraform (terraform/) and Ansible (ansible/) directories
+
+# Terraform files
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+!terraform/terraform.tfvars.example
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/crash.log
+terraform/crash.*.log
+
+# Ansible files
+ansible/inventory.ini
+ansible/*.retry
+ansible/.vault_pass
+ansible/host_vars/
+ansible/group_vars/
+ansible/collections/
+ansible/roles/*/tests/test.yml
+ansible/roles/*/tests/inventory
+ansible/playbooks/*.retry
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# SSH keys (security)
+*.pem
+*.key
+id_rsa*
+!*.pub
+
+# Log files
+*.log
+logs/
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Documentation builds
+docs/_build/
+site/
