@@ -59,3 +59,27 @@ variable "disk_size" {
   type        = number
   default     = 20
 }
+
+variable "gpu_passthrough" {
+  description = "Enable GPU passthrough"
+  type        = bool
+  default     = false
+}
+
+variable "gpu_pci_ids" {
+  description = "List of GPU PCI device IDs to passthrough"
+  type        = list(string)
+  default     = []
+}
+
+variable "gpu_vendor_ids" {
+  description = "List of GPU vendor IDs (e.g., 10de for Nvidia)"
+  type        = list(string)
+  default     = []
+}
+
+variable "gpu_device_ids" {
+  description = "List of GPU device IDs"
+  type        = list(string)
+  default     = []
+}

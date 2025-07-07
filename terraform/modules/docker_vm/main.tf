@@ -75,6 +75,16 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
     type = "l26"
   }
 
+  # GPU Passthrough configuration
+  dynamic "hostpci" {
+    for_each = var.gpu_passthrough ? var.gpu_pci_ids : []
+    content {
+      device = hostpci.value
+      pcie   = true
+      rombar = true
+    }
+  }
+
   # Serial device for console access
   serial_device {}
 

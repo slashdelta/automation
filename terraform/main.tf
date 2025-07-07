@@ -37,6 +37,22 @@ locals {
   }
   
   ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB5R9lvNg5kr//TP6c2X8XprZ/+rhF22P7QF6hiePMrA"
+  
+  # GPU configuration - you'll need to update these with your actual GPU PCI IDs
+  gpu_config = {
+    red = {
+      gpu_passthrough = true
+      gpu_pci_ids     = ["0000:01:00.0", "0000:01:00.1"]  # Update with your GPU PCI IDs
+    }
+    green = {
+      gpu_passthrough = true
+      gpu_pci_ids     = ["0000:02:00.0", "0000:02:00.1"]  # Update with your GPU PCI IDs
+    }
+    blue = {
+      gpu_passthrough = true
+      gpu_pci_ids     = ["0000:03:00.0", "0000:03:00.1"]  # Update with your GPU PCI IDs
+    }
+  }
 }
 
 # Create Docker VMs using the module
@@ -52,4 +68,8 @@ module "docker_vms" {
   ubuntu_template    = 9000
   vm_ssh_public_key  = local.ssh_public_key
   ip                 = each.value.ip
+  
+  # GPU passthrough configuration
+  gpu_passthrough    = local.gpu_config[each.key].gpu_passthrough
+  gpu_pci_ids        = local.gpu_config[each.key].gpu_pci_ids
 }

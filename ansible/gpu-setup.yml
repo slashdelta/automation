@@ -1,0 +1,142 @@
+---
+# Ansible playbook to install NVIDIA drivers and Docker GPU support
+- name: Install NVIDIA drivers and Docker GPU support
+  hosts: docker_vms
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    nvidia_driver_version: "535"  # Adjust based on your GPU and requirements
+    
+  tasks:
+    - name: Display GPU information
+      debug:
+        msg: |
+          Configuring GPU support for VM: {{ vm_name }}
+          Hostname: {{ hostname }}
+          IP Address: {{ ansible_host }}
+    
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    
+    - name: Install prerequisites
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+          - ubuntu-drivers-common
+        state: present
+    
+    - name: Add NVIDIA driver repository
+      apt_repository:
+        repo: "ppa:graphics-drivers/ppa"
+        state: present
+        update_cache: yes
+    
+    - name: Install NVIDIA drivers
+      apt:
+        name: "nvidia-driver-{{ nvidia_driver_version }}"
+        state: present
+        update_cache: yes
+      register: nvidia_install
+    
+    - name: Install NVIDIA container toolkit prerequisites
+      apt:
+        name:
+          - nvidia-docker2
+          - nvidia-container-toolkit
+        state: present
+      ignore_errors: yes  # These might not be available in all repos
+    
+    - name: Add NVIDIA container toolkit repository
+      shell: |
+        curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+        curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+          sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+          sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+      args:
+        creates: /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    
+    - name: Update apt cache after adding NVIDIA repository
+      apt:
+        update_cache: yes
+    
+    - name: Install NVIDIA container toolkit
+      apt:
+        name:
+          - nvidia-container-toolkit
+        state: present
+    
+    - name: Configure Docker to use NVIDIA runtime
+      copy:
+        content: |
+          {
+            "runtimes": {
+              "nvidia": {
+                "path": "nvidia-container-runtime",
+                "runtimeArgs": []
+              }
+            },
+            "default-runtime": "nvidia"
+          }
+        dest: /etc/docker/daemon.json
+        backup: yes
+      notify: restart docker
+    
+    - name: Restart Docker service
+      systemd:
+        name: docker
+        state: restarted
+        enabled: yes
+    
+    - name: Test NVIDIA GPU access
+      command: nvidia-smi
+      register: nvidia_smi_result
+      failed_when: false
+      changed_when: false
+    
+    - name: Display NVIDIA SMI output
+      debug:
+        var: nvidia_smi_result.stdout_lines
+      when: nvidia_smi_result.rc == 0
+    
+    - name: Test Docker GPU access
+      command: docker run --rm nvidia/cuda:11.0-base nvidia-smi
+      register: docker_gpu_test
+      failed_when: false
+      changed_when: false
+    
+    - name: Display Docker GPU test result
+      debug:
+        msg: "Docker GPU test {{ 'PASSED' if docker_gpu_test.rc == 0 else 'FAILED' }}"
+    
+    - name: Check if reboot is required
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+    
+    - name: Notify about reboot requirement
+      debug:
+        msg: "REBOOT REQUIRED: System needs to be rebooted for GPU drivers to take effect"
+      when: reboot_required.stat.exists or nvidia_install.changed
+    
+    - name: Reboot if required (optional - uncomment if you want automatic reboot)
+      # reboot:
+      #   msg: "Rebooting for GPU drivers"
+      #   reboot_timeout: 300
+      # when: reboot_required.stat.exists or nvidia_install.changed
+      debug:
+        msg: "Reboot manually or uncomment the reboot task above"
+      when: reboot_required.stat.exists or nvidia_install.changed
+  
+  handlers:
+    - name: restart docker
+      systemd:
+        name: docker
+        state: restarted
