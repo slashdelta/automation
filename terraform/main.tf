@@ -2,9 +2,9 @@
 
 # Provider configuration
 provider "proxmox" {
-  endpoint  = "https://10.10.0.10:8006/"
-  username  = "terraform@pve"
-  api_token = "terraform@pve!terraform=1cb7dead-8e4c-44ab-a413-06e0e12af3cb"
+  endpoint  = var.proxmox_api_url
+  username  = var.proxmox_api_user
+  api_token = var.proxmox_api_token
 
   # Skip TLS verification if using self-signed certificates
   insecure = true
@@ -36,23 +36,8 @@ locals {
     }
   }
 
-  ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB5R9lvNg5kr//TP6c2X8XprZ/+rhF22P7QF6hiePMrA"
+  ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB5R9lvNg5kr//TP6c2X8XprZ/+rhF22P7QF6hiePMrA slash.admin@xps"
 
-  # GPU configuration with actual discovered PCI IDs (simplified format)
-  gpu_config = {
-    red = {
-      gpu_passthrough = true
-      gpu_pci_ids     = ["01:00.0", "01:00.1", "01:00.2", "01:00.3"]  # RTX 2060 Mobile complete IOMMU group 16
-    }
-    green = {
-      gpu_passthrough = true
-      gpu_pci_ids     = ["2f:00.0", "2f:00.1"]  # RTX 2000 Ada Generation IOMMU group 2 (newer GPU)
-    }
-    blue = {
-      gpu_passthrough = true
-      gpu_pci_ids     = ["01:00.0", "01:00.1", "01:00.2", "01:00.3"]  # RTX 2060 Mobile complete IOMMU group 16
-    }
-  }
 }
 
 # Create Docker VMs using the module
@@ -68,8 +53,4 @@ module "docker_vms" {
   ubuntu_template   = 9000
   vm_ssh_public_key = local.ssh_public_key
   ip                = each.value.ip
-
-  # GPU passthrough configuration
-  gpu_passthrough = local.gpu_config[each.key].gpu_passthrough
-  gpu_pci_ids     = local.gpu_config[each.key].gpu_pci_ids
 }

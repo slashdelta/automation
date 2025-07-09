@@ -70,3 +70,10 @@ logs/
 # Documentation builds
 docs/_build/
 site/
+
+# Setup script generated files (contains sensitive data)
+setup_files/
+!setup_files/functions.sh
+!setup_files/pve_host.sh
+!setup_files/terraform_vm.sh
+from-setup.tfvars

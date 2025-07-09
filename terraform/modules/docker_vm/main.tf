@@ -11,6 +11,7 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
   name      = var.name
   vm_id     = var.vmid
   node_name = var.target_node
+  machine   = var.machine
 
   # Clone from Ubuntu template on the template node
   clone {
@@ -33,7 +34,7 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
   # Disk configuration
   disk {
     datastore_id = var.storage
-    interface    = "virtio0"
+    interface    = "scsi0"
     size         = var.disk_size
   }
 
@@ -49,6 +50,7 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
 
     user_account {
       username = "ubuntu"
+      password = "ThisIsAPassword!23"
       keys     = [var.vm_ssh_public_key]
     }
 
@@ -59,6 +61,7 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
       }
     }
 
+
     dns {
       servers = ["8.8.8.8", "8.8.4.4"]
     }
@@ -67,7 +70,7 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
   # Enable qemu-guest-agent but don't wait for it during creation
   agent {
     enabled = true
-    timeout = "30s"
+    timeout = "100s"
   }
 
   # Operating system configuration
@@ -75,15 +78,6 @@ resource "proxmox_virtual_environment_vm" "docker_vm" {
     type = "l26"
   }
 
-  # GPU Passthrough configuration
-  dynamic "hostpci" {
-    for_each = var.gpu_passthrough ? { for idx, pci_id in var.gpu_pci_ids : idx => pci_id } : {}
-    content {
-      device = hostpci.value
-      pcie   = true
-      rombar = true
-    }
-  }
 
   # Serial device for console access
   serial_device {}

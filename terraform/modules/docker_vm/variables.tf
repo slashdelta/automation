@@ -31,9 +31,16 @@ variable "vm_ssh_public_key" {
   type        = string
 }
 
+variable "use_dhcp" {
+  description = "Use DHCP for network configuration"
+  type        = bool
+  default     = true
+}
+
 variable "ip" {
-  description = "IP address for the VM"
+  description = "IP address for the VM (only used if use_dhcp is false)"
   type        = string
+  default     = ""
 }
 
 variable "storage" {
@@ -60,26 +67,14 @@ variable "disk_size" {
   default     = 20
 }
 
-variable "gpu_passthrough" {
-  description = "Enable GPU passthrough"
-  type        = bool
-  default     = false
+variable "machine" {
+  description = "The machine type"
+  type        = string
+  default     = "q35"
 }
 
-variable "gpu_pci_ids" {
-  description = "List of GPU PCI device IDs to passthrough"
-  type        = list(string)
-  default     = []
-}
-
-variable "gpu_vendor_ids" {
-  description = "List of GPU vendor IDs (e.g., 10de for Nvidia)"
-  type        = list(string)
-  default     = []
-}
-
-variable "gpu_device_ids" {
-  description = "List of GPU device IDs"
+variable "mapped_devices" {
+  description = "List of mapped devices to pass through to the VM"
   type        = list(string)
   default     = []
 }
