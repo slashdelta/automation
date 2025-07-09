@@ -28,7 +28,7 @@ locals {
   # Standalone configuration
   standalone_vm_configs = {
     for i in range(var.vm_count) : "vm-${i + 1}" => {
-      name        = "${var.vm_hostname_prefix}${var.vm_hostname_suffix + i}"
+      name        = length(var.node_names) > 0 ? "${var.node_names[0]}-${var.vm_hostname_prefix}${var.vm_hostname_suffix + i}" : "${var.vm_hostname_prefix}${var.vm_hostname_suffix + i}"
       vmid        = local.vm_id_base + i + 1
       target_node = var.template_node != "" ? var.template_node : var.node_names[0]
       ip_address  = "${local.ip_base}.${local.ip_start + i}"
@@ -36,16 +36,28 @@ locals {
     }
   }
   
-  # Clustered configuration - much simpler
+  # Clustered configuration - with proper global indexing
   clustered_vm_list = flatten([
-    for node_name, vm_count in var.vm_distribution : [
-      for i in range(vm_count) : {
-        key         = "${node_name}-vm-${i + 1}"
-        name        = "${var.vm_hostname_prefix}${var.vm_hostname_suffix + i}"
-        vmid        = local.vm_id_base + i + 1
+    for node_idx, node_name in keys(var.vm_distribution) : [
+      for vm_idx in range(var.vm_distribution[node_name]) : {
+        # Calculate global index across all nodes
+        global_index = sum([
+          for prev_node in slice(keys(var.vm_distribution), 0, index(keys(var.vm_distribution), node_name)) :
+          var.vm_distribution[prev_node]
+        ]) + vm_idx
+        
+        key         = "${node_name}-vm-${vm_idx + 1}"
+        name        = "${node_name}-${var.vm_hostname_prefix}${var.vm_hostname_suffix + vm_idx}"
+        vmid        = local.vm_id_base + sum([
+          for prev_node in slice(keys(var.vm_distribution), 0, index(keys(var.vm_distribution), node_name)) :
+          var.vm_distribution[prev_node]
+        ]) + vm_idx + 1
         target_node = node_name
-        ip_address  = "${local.ip_base}.${local.ip_start + i}"
-        index       = i
+        ip_address  = "${local.ip_base}.${local.ip_start + sum([
+          for prev_node in slice(keys(var.vm_distribution), 0, index(keys(var.vm_distribution), node_name)) :
+          var.vm_distribution[prev_node]
+        ]) + vm_idx}"
+        index       = vm_idx
       }
     ]
   ])
