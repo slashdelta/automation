@@ -118,11 +118,11 @@ resource "proxmox_virtual_environment_vm" "vm" {
   vm_id       = each.value.vmid
   node_name   = each.value.target_node
   
-  # Clone from template (cluster-aware)
+  # Clone from template (specify source node for cluster)
   clone {
     vm_id     = var.template_id
+    node_name = var.template_node != "" ? var.template_node : var.node_names[0]  # Clone from template node
     full      = true
-    # In a cluster, template can be on any node - Proxmox will find it
   }
   
   # VM Configuration
