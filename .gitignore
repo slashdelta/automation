@@ -5,12 +5,14 @@
 # Terraform files
 terraform/*.tfstate
 terraform/*.tfstate.*
+terraform/*.tfstate.backup
 terraform/*.tfvars
 !terraform/terraform.tfvars.example
 terraform/.terraform/
 terraform/.terraform.lock.hcl
 terraform/crash.log
 terraform/crash.*.log
+terraform/terraform.tfplan
 
 # Ansible files
 ansible/inventory.ini

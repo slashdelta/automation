@@ -1,5 +1,5 @@
-# Main Terraform Variables
-# These variables are populated by the setup.sh script
+# Proxmox VM Module Variables
+# This module integrates with the setup.sh script variables
 
 # Proxmox Connection Variables
 variable "proxmox_api_url" {
@@ -36,9 +36,9 @@ variable "pve_cluster_name" {
   default     = ""
 }
 
-# Dynamic Node Configuration
+# Node Configuration (for clustered setups)
 variable "node_names" {
-  description = "List of node names (for both clustered and standalone)"
+  description = "List of node names in the cluster"
   type        = list(string)
   default     = []
 }
@@ -51,7 +51,7 @@ variable "node_ips" {
 
 # VM Distribution per Node (for clustered setups)
 variable "vm_distribution" {
-  description = "Map of node names to VM counts (for clustered setups)"
+  description = "Map of node names to VM counts"
   type        = map(number)
   default     = {}
 }
@@ -69,45 +69,21 @@ variable "template_node" {
   default     = ""
 }
 
-variable "create_template" {
-  description = "Whether to create a template if it doesn't exist"
-  type        = bool
-  default     = true
-}
-
-variable "template_name" {
-  description = "Name for the template VM"
-  type        = string
-  default     = "ubuntu-cloud-template"
-}
-
-variable "ubuntu_version" {
-  description = "Ubuntu version to download (noble, jammy, etc.)"
-  type        = string
-  default     = "noble"
-}
-
-variable "ubuntu_image_url" {
-  description = "Ubuntu cloud image URL"
-  type        = string
-  default     = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
-}
-
 # Storage Configuration
 variable "storage_pool" {
-  description = "Storage pool name for VM disks"
+  description = "Storage pool name"
   type        = string
   default     = "ceph-vm"
 }
 
 variable "template_storage_pool" {
-  description = "Storage pool name for template downloads/snippets (must support ISO/snippets)"
+  description = "Storage pool for templates and snippets"
   type        = string
   default     = "truenas"
 }
 
 variable "template_vm_disk_storage" {
-  description = "Storage pool for template VM disks (should match VM disk storage)"
+  description = "Storage pool for template VM disks"
   type        = string
   default     = "ceph-vm"
 }
