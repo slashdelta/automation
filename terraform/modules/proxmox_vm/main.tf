@@ -36,27 +36,22 @@ locals {
     }
   }
   
+  # Calculate VM offset for each node (cumulative VM count)
+  node_vm_offsets = {
+    for i, node_name in keys(var.vm_distribution) : node_name => i == 0 ? 0 : sum([
+      for j in range(i) : var.vm_distribution[keys(var.vm_distribution)[j]]
+    ])
+  }
+
   # Clustered configuration - with proper global indexing
   clustered_vm_list = flatten([
-    for node_idx, node_name in keys(var.vm_distribution) : [
-      for vm_idx in range(var.vm_distribution[node_name]) : {
-        # Calculate global index across all nodes
-        global_index = sum([
-          for prev_node in slice(keys(var.vm_distribution), 0, index(keys(var.vm_distribution), node_name)) :
-          var.vm_distribution[prev_node]
-        ]) + vm_idx
-        
+    for node_name, vm_count in var.vm_distribution : [
+      for vm_idx in range(vm_count) : {
         key         = "${node_name}-vm-${vm_idx + 1}"
         name        = "${node_name}-${var.vm_hostname_prefix}${var.vm_hostname_suffix + vm_idx}"
-        vmid        = local.vm_id_base + sum([
-          for prev_node in slice(keys(var.vm_distribution), 0, index(keys(var.vm_distribution), node_name)) :
-          var.vm_distribution[prev_node]
-        ]) + vm_idx + 1
+        vmid        = local.vm_id_base + local.node_vm_offsets[node_name] + vm_idx + 1
         target_node = node_name
-        ip_address  = "${local.ip_base}.${local.ip_start + sum([
-          for prev_node in slice(keys(var.vm_distribution), 0, index(keys(var.vm_distribution), node_name)) :
-          var.vm_distribution[prev_node]
-        ]) + vm_idx}"
+        ip_address  = "${local.ip_base}.${local.ip_start + local.node_vm_offsets[node_name] + vm_idx}"
         index       = vm_idx
       }
     ]
@@ -93,6 +88,7 @@ packages:
   - htop
   - net-tools
   - qemu-guest-agent
+  - openssh-server
 
 manage_resolv_conf: true
 resolv_conf:
@@ -106,6 +102,7 @@ runcmd:
   - systemctl enable ssh
   - systemctl start ssh
   - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
   - systemctl start qemu-guest-agent
   - echo "Cloud-init completed for HOSTNAME_PLACEHOLDER" >> /var/log/cloud-init-custom.log
 
